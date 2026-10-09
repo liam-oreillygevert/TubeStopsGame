@@ -45,6 +45,10 @@ let result = null;      // null while playing, then "won" or "lost"
 let matches = [];       // stations currently shown in the dropdown
 let activeMatch = 0;
 
+// unlimited.html sets <body data-mode="unlimited">: random puzzles,
+// one after another, and nothing is saved
+const UNLIMITED = document.body.dataset.mode === "unlimited";
+
 
 /* ==========================================
    TODAY'S PUZZLE
@@ -139,15 +143,33 @@ const puzzleDate = /^\d{4}-\d{2}-\d{2}$/.test(requestedDate || "")
     ? requestedDate
     : getToday();
 
-const answer = puzzles[requestedStation]
-    ? requestedStation
-    : stationForDate(puzzleDate);
+const dailyAnswer = stationForDate(puzzleDate);
 
-const puzzle = { answer, lines: puzzles[answer] };
+// Unlimited picks any station except the last one played and today's
+// daily answer, so it can't be used to spoil the daily puzzle
+function randomStation(previous) {
 
-if (!STATIONS.includes(puzzle.answer)) {
-    STATIONS.push(puzzle.answer);
+    const choices = PUZZLE_STATIONS.filter(station =>
+        station !== dailyAnswer && station !== previous
+    );
+
+    return choices[Math.floor(Math.random() * choices.length)];
 }
+
+function puzzleFor(answer) {
+
+    if (!STATIONS.includes(answer)) {
+        STATIONS.push(answer);
+    }
+
+    return { answer, lines: puzzles[answer] };
+}
+
+let puzzle = puzzleFor(
+    puzzles[requestedStation] ? requestedStation
+        : UNLIMITED ? randomStation()
+        : dailyAnswer
+);
 
 
 /* ==========================================
@@ -172,6 +194,11 @@ if (TESTING && params.has("reset")) {
 
 function loadGame() {
 
+    // Unlimited games aren't saved
+    if (UNLIMITED) {
+        return;
+    }
+
     try {
         const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
 
@@ -186,6 +213,10 @@ function loadGame() {
 }
 
 function saveGame() {
+
+    if (UNLIMITED) {
+        return;
+    }
 
     try {
         localStorage.setItem(SAVE_KEY, JSON.stringify({
@@ -235,7 +266,7 @@ function stopsFrom(start) {
     return stops;
 }
 
-const stopsToAnswer = stopsFrom(puzzle.answer);
+let stopsToAnswer = stopsFrom(puzzle.answer);
 
 function isClose(station) {
     return stopsToAnswer[station] <= CLOSE_STOPS;
@@ -257,17 +288,37 @@ function getBackgroundLine(date) {
     return BACKGROUND_LINES[dayNumberOf(date) % BACKGROUND_LINES.length];
 }
 
+// Unlimited changes colour every game, never the same line twice in a row
+function randomBackgroundLine(previous) {
+
+    const choices = BACKGROUND_LINES.filter(line => line !== previous);
+
+    return choices[Math.floor(Math.random() * choices.length)];
+}
+
+function setBackground(line) {
+
+    const colour = LINE_COLOURS[line];
+
+    document.documentElement.style.setProperty("--page", colour);
+
+    // White text is hard to read on the light lines (Circle, Jubilee...)
+    document.documentElement.style.setProperty(
+        "--on-page",
+        isLightColour(colour) ? "#111111" : "#ffffff"
+    );
+
+    document
+        .querySelector('meta[name="theme-color"]')
+        .setAttribute("content", colour);
+}
+
 // Follows the test button's date when there is one, otherwise today
-const backgroundLine = getBackgroundLine(puzzleDate);
-const backgroundColour = LINE_COLOURS[backgroundLine];
+let backgroundLine = UNLIMITED
+    ? randomBackgroundLine()
+    : getBackgroundLine(puzzleDate);
 
-document.documentElement.style.setProperty("--page", backgroundColour);
-
-// White text is hard to read on the light lines (Circle, Jubilee...)
-document.documentElement.style.setProperty(
-    "--on-page",
-    isLightColour(backgroundColour) ? "#111111" : "#ffffff"
-);
+setBackground(backgroundLine);
 
 function isLightColour(hex) {
 
@@ -276,9 +327,6 @@ function isLightColour(hex) {
     // Perceived brightness, 0 (black) to 1 (white)
     return 0.299 * r + 0.587 * g + 0.114 * b > 0.6;
 }
-document
-    .querySelector('meta[name="theme-color"]')
-    .setAttribute("content", backgroundColour);
 
 
 /* ==========================================
@@ -292,6 +340,7 @@ const suggestions = document.getElementById("suggestions");
 const resultRow = document.getElementById("result");
 const guessList = document.getElementById("guesses");
 const testButton = document.getElementById("test-button");
+const nextButton = document.getElementById("next-button");   // after the game ends
 
 
 /* ==========================================
@@ -331,41 +380,45 @@ function formatDate(date) {
     });
 }
 
-document.getElementById("landing-date").textContent = formatDate(puzzleDate);
+// unlimited.html has no landing screen: it goes straight to the game
+if (landing) {
 
-// Already finished today (from a saved game): no replaying
-if (result !== null) {
-    playButton.textContent = "See today's result";
-} else if (guesses.length > 0) {
-    playButton.textContent = "Carry on with today's puzzle";
-}
+    document.getElementById("landing-date").textContent = formatDate(puzzleDate);
 
-playButton.addEventListener("click", () => {
-
+    // Already finished today (from a saved game): no replaying
     if (result !== null) {
-        setTimeout(showEndPopup, 300);   // once the landing screen has faded
+        playButton.textContent = "See today's result";
+    } else if (guesses.length > 0) {
+        playButton.textContent = "Carry on with today's puzzle";
     }
 
-    document.body.classList.remove("on-landing");
-    landing.classList.add("leaving");
+    playButton.addEventListener("click", () => {
 
-    // Remove it once the fade has finished
-    setTimeout(() => {
-        landing.hidden = true;
-    }, 300);
+        if (result !== null) {
+            setTimeout(showEndPopup, 300);   // once the landing screen has faded
+        }
 
-    // The page can scroll now, which may change its width
-    fitTitle();
-    placeLabels();
-});
+        document.body.classList.remove("on-landing");
+        landing.classList.add("leaving");
+
+        // Remove it once the fade has finished
+        setTimeout(() => {
+            landing.hidden = true;
+        }, 300);
+
+        // The page can scroll now, which may change its width
+        fitTitle();
+        placeLabels();
+    });
+}
 
 
 /* ==========================================
    TEST BUTTON
    ========================================== */
 
-// Only shown when testing on your own computer
-testButton.hidden = !TESTING;
+// Only shown when testing on your own computer, and only for the daily puzzle
+testButton.hidden = !TESTING || UNLIMITED;
 
 testButton.textContent = `${puzzleDate} · ${backgroundLine} · Next day ▸`;
 
@@ -789,7 +842,7 @@ function showEndPopup() {
     } else {
         document.getElementById("popup-heading").textContent = "The answer was";
         document.getElementById("popup-message").textContent =
-            "Better luck tomorrow!";
+            UNLIMITED ? "Better luck next time!" : "Better luck tomorrow!";
     }
 
     popup.showModal();
@@ -807,6 +860,33 @@ popup.addEventListener("click", event => {
 
 
 /* ==========================================
+   UNLIMITED: NEXT GAME
+   ========================================== */
+
+function newGame() {
+
+    puzzle = puzzleFor(randomStation(puzzle.answer));
+    stopsToAnswer = stopsFrom(puzzle.answer);
+    guesses = [];
+    result = null;
+
+    backgroundLine = randomBackgroundLine(backgroundLine);
+    setBackground(backgroundLine);
+
+    map.innerHTML = "";   // drawMap builds the new puzzle's map
+    popup.close();
+    render();
+
+    window.scrollTo(0, 0);
+}
+
+if (UNLIMITED) {
+    nextButton.addEventListener("click", newGame);
+    document.getElementById("popup-next").addEventListener("click", newGame);
+}
+
+
+/* ==========================================
    RENDER
    ========================================== */
 
@@ -817,6 +897,9 @@ function render() {
     // Once the game ends the answer replaces the input box
     answerArea.hidden = result !== null;
     resultRow.hidden = result === null;
+
+    // Unlimited: play another. Daily: a link to unlimited.html
+    nextButton.hidden = result === null;
 
     if (result === "won") {
         resultRow.className = "row correct";
