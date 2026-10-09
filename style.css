@@ -293,6 +293,19 @@ body {
     opacity: 0;
 }
 
+/* Small name written inside each line once the colours show */
+.line-name {
+    font-family: var(--font);
+    font-size: 7px;   /* in map units: fits inside the 10-wide line */
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    transition: opacity 0.5s ease, fill 0.5s ease;
+}
+
+.line-name.hidden {
+    opacity: 0;
+}
+
 @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }

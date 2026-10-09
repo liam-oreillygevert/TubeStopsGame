@@ -2,8 +2,8 @@
    SETTINGS
    ========================================== */
 
-const STOPS_CLUE = 3;    // wrong guesses before the next stops are named
-const COLOUR_CLUE = 8;   // wrong guesses before the line colours show
+const COLOUR_CLUE = 3;   // wrong guesses before the line colours show
+const STOPS_CLUE = 7;    // wrong guesses before the next stops are named
 const MAX_GUESSES = 10;
 const CLOSE_STOPS = 5;   // guesses this many stops away or fewer show yellow
 
@@ -31,7 +31,9 @@ const LINE_COLOURS = {
     "Waterloo & City": "#93CEBA"
 };
 
-const HIDDEN_COLOUR = "#111111";
+// Light grey, so a hidden line can't be mistaken for the Northern
+// (black) or Jubilee (silver) line
+const HIDDEN_COLOUR = "#d9d9d9";
 
 
 /* ==========================================
@@ -415,6 +417,11 @@ function drawMap() {
         stop.style.fill = colour;
         stop.classList.toggle("hidden", !showStops);   // dots appear with the stop names
 
+        // Line names appear with the colours, dark text on the light lines
+        const name = map.querySelector(`#name-${index}`);
+        name.style.fill = isLightColour(colour) ? "#111111" : "#ffffff";
+        name.classList.toggle("hidden", !showColours);
+
     });
 
     // Hidden with opacity, not display, so the text can be measured
@@ -429,6 +436,7 @@ const LINE_SPACING = 12;
 function buildMap() {
 
     const lineLayer = addSvg("g", {}, map);
+    const nameLayer = addSvg("g", {}, map);
     const stopLayer = addSvg("g", {}, map);
     const labelLayer = addSvg("g", {}, map);
 
@@ -442,14 +450,18 @@ function buildMap() {
         (groups[key] = groups[key] || []).push(line);
     });
 
+    // Grow the station circle so it covers several side-by-side lines
+    const widestOffset = Math.max(...Object.values(groups).map(group =>
+        (group.length - 1) / 2 * LINE_SPACING
+    ));
+    const stationRadius = Math.max(20, widestOffset + 10);
+
     const labelled = new Set();
-    let widestOffset = 0;
 
     puzzle.lines.forEach((line, index) => {
 
         const group = groups[line.angle % 180];
         const offset = (group.indexOf(line) - (group.length - 1) / 2) * LINE_SPACING;
-        widestOffset = Math.max(widestOffset, Math.abs(offset));
 
         // Steep lines are shortened so their stops stay on the map
         const radians = line.angle * Math.PI / 180;
@@ -480,6 +492,8 @@ function buildMap() {
             y2: stopY + shiftY
         }, lineLayer);
 
+        addLineName(line, index, length, stationRadius, shiftX, shiftY, nameLayer);
+
         addSvg("circle", {
             id: `stop-${index}`,
             class: "stop",
@@ -507,15 +521,70 @@ function buildMap() {
 
     });
 
-    // Grow the station circle so it covers several side-by-side lines
     addSvg("circle", {
         class: "central-station",
         cx: centreX,
         cy: centreY,
-        r: Math.max(20, widestOffset + 10)
+        r: stationRadius
     }, map);
 
     placeLabels();
+    fitLineNames();
+}
+
+/*
+ * The line's name, written inside it halfway between the station
+ * circle and the next stop. It's turned to run along the line but
+ * never upside down: vertical names read upwards.
+ */
+function addLineName(line, index, length, stationRadius, shiftX, shiftY, parent) {
+
+    const stopRadius = 5;
+    const padding = 3;
+
+    // Room between the station's black ring and the stop dot
+    const start = stationRadius + 4.5 + padding;   // 4.5: half the ring
+    const end = length - stopRadius - padding;
+    const middle = (start + end) / 2;
+
+    const radians = line.angle * Math.PI / 180;
+    const x = MAP.centreX + Math.cos(radians) * middle + shiftX;
+    const y = MAP.centreY - Math.sin(radians) * middle + shiftY;
+
+    // SVG turns clockwise, the angles go anticlockwise
+    let turn = (-line.angle % 360 + 360) % 360;
+    if (turn >= 90 && turn < 270) {
+        turn -= 180;
+    }
+
+    const name = addSvg("text", {
+        id: `name-${index}`,
+        class: "line-name hidden",
+        "text-anchor": "middle",
+        dy: "0.35em",   // centre the letters across the line
+        x,
+        y,
+        transform: `rotate(${turn} ${x} ${y})`,
+        "data-room": end - start
+    }, parent);
+
+    name.textContent = line.name;
+}
+
+// Squeeze any name too long for its stretch of line (needs the real font)
+function fitLineNames() {
+
+    map.querySelectorAll(".line-name").forEach(name => {
+
+        name.removeAttribute("textLength");
+
+        const room = Number(name.dataset.room);
+
+        if (name.getComputedTextLength() > room) {
+            name.setAttribute("textLength", room);
+            name.setAttribute("lengthAdjust", "spacingAndGlyphs");
+        }
+    });
 }
 
 /*
@@ -893,6 +962,7 @@ fitTitle();
 document.fonts.ready.then(() => {
     fitTitle();
     placeLabels();
+    fitLineNames();
 });
 
 window.addEventListener("scroll", queueReveal, { passive: true });
