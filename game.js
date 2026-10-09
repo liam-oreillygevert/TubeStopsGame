@@ -149,6 +149,58 @@ if (!STATIONS.includes(puzzle.answer)) {
 
 
 /* ==========================================
+   SAVED GAME
+   ========================================== */
+
+/*
+ * Today's guesses are kept in the browser after every guess, so
+ * refreshing the page carries on (or shows the finished game) instead
+ * of starting again. Only the latest day is kept: a new day's puzzle
+ * replaces it. Add ?reset when testing to clear it.
+ */
+const SAVE_KEY = "tube-stops-game";
+
+if (TESTING && params.has("reset")) {
+    try {
+        localStorage.removeItem(SAVE_KEY);
+    } catch (error) {
+        // Storage blocked (private browsing): nothing to clear
+    }
+}
+
+function loadGame() {
+
+    try {
+        const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+
+        // Only restore a save from this same puzzle
+        if (saved && saved.date === puzzleDate && saved.answer === puzzle.answer) {
+            guesses = saved.guesses;
+            result = saved.result;
+        }
+    } catch (error) {
+        // Missing, unreadable or blocked: start a fresh game
+    }
+}
+
+function saveGame() {
+
+    try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify({
+            date: puzzleDate,
+            answer: puzzle.answer,
+            guesses,
+            result
+        }));
+    } catch (error) {
+        // Storage blocked: the game still works, it just won't be saved
+    }
+}
+
+loadGame();
+
+
+/* ==========================================
    DISTANCE TO THE ANSWER
    ========================================== */
 
@@ -279,7 +331,18 @@ function formatDate(date) {
 
 document.getElementById("landing-date").textContent = formatDate(puzzleDate);
 
+// Already finished today (from a saved game): no replaying
+if (result !== null) {
+    playButton.textContent = "See today's result";
+} else if (guesses.length > 0) {
+    playButton.textContent = "Carry on with today's puzzle";
+}
+
 playButton.addEventListener("click", () => {
+
+    if (result !== null) {
+        setTimeout(showEndPopup, 300);   // once the landing screen has faded
+    }
 
     document.body.classList.remove("on-landing");
     landing.classList.add("leaving");
@@ -626,6 +689,7 @@ function makeGuess(station) {
         }
     }
 
+    saveGame();
     render();
 
     // Short pause so the final map reveal is seen before the pop-up
