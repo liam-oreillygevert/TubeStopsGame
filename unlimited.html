@@ -4,53 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#f5f5f5">
-    <title>Tube Stops</title>
-
-    <!-- Preview text when the link is shared (WhatsApp, iMessage, social media) -->
-    <meta name="description" content="Guess the London Underground station from the tube lines that meet there. A new puzzle every day.">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Tube Stops">
-    <meta property="og:title" content="Tube Stops: the daily London Underground puzzle">
-    <meta property="og:description" content="Guess the London Underground station from the tube lines that meet there. A new puzzle every day.">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Tube Stops: the daily London Underground puzzle">
-    <meta name="twitter:description" content="Guess the London Underground station from the tube lines that meet there. A new puzzle every day.">
+    <title>Tube Stops Unlimited</title>
+    <meta name="description" content="Guess the London Underground station from the tube lines that meet there. Play as many random puzzles as you like.">
     <link rel="stylesheet" href="style.css">
 </head>
 
-<body class="on-landing">
-
-<!-- Landing screen, shown over the game until Play is pressed -->
-<section class="landing" id="landing">
-
-    <p class="landing-title" role="heading" aria-level="2">TUBE STOPS</p>
-
-    <p class="landing-text">
-        Guess the London Underground station in as few guesses as possible
-    </p>
-
-    <button id="play-button" class="play-button" type="button">
-        Play today's puzzle
-    </button>
-
-    <!-- Random puzzles, one after another, on their own page -->
-    <a href="unlimited.html" class="play-button unlimited-button">
-        Play unlimited
-    </a>
-
-    <p class="landing-date" id="landing-date"></p>
-
-</section>
+<!-- data-mode tells game.js to play random puzzles back to back -->
+<body data-mode="unlimited">
 
 <header class="title-stack" id="title-stack">
-    <h1 class="title"><span id="title-text">TUBE STOPS</span></h1>
+    <h1 class="title"><span id="title-text">UNLIMITED</span></h1>
     <!-- Extra copies added by game.js as the page scrolls -->
     <div id="title-repeats" aria-hidden="true"></div>
 </header>
 
 <main class="game">
 
-    <!-- The map is drawn by game.js from today's puzzle -->
+    <!-- The map is drawn by game.js from the current puzzle -->
     <div class="map-container">
         <svg id="tube-map" viewBox="0 0 400 260" role="img" aria-label="Tube lines meeting at the mystery station"></svg>
     </div>
@@ -74,8 +44,7 @@
 
     <div id="result" class="row" hidden></div>
 
-    <!-- Shown once today's puzzle is finished -->
-    <a id="next-button" class="next-button" href="unlimited.html" hidden>Play unlimited</a>
+    <button id="next-button" class="next-button" type="button" hidden>Play another</button>
 
     <div id="guesses"></div>
 
@@ -88,7 +57,7 @@
     <h2 id="rules-heading">How to play</h2>
 
     <p>
-        Every day there's a new mystery London Underground station.
+        Every game is a random mystery London Underground station.
         The map shows the tube lines that meet there. Can you name it?
     </p>
 
@@ -98,8 +67,13 @@
         <li>After <span data-rule="colours">3</span> wrong guesses, the lines show their colours.</li>
         <li>After <span data-rule="stops">7</span> wrong guesses, the next stop on each line is revealed.</li>
         <li>A yellow guess is within <span data-rule="close">5</span> stops of the answer, so you're getting close. Grey guesses are further away.</li>
-        <li>Guess right and the station turns green. Come back tomorrow for a new puzzle!</li>
+        <li>Guess right and the station turns green. Then play another, as many times as you like!</li>
     </ol>
+
+    <p>
+        <br>
+        Want the daily puzzle? <a href="index.html">Play today's puzzle</a>
+    </p>
 
     <p>
         <br>
@@ -125,8 +99,8 @@
         <p id="popup-message" class="popup-message"></p>
 
         <div class="popup-buttons">
-            <a id="popup-next" class="popup-close popup-next" href="unlimited.html">Play unlimited</a>
-            <button id="popup-close" class="popup-close" type="button" autofocus>Close</button>
+            <button id="popup-next" class="popup-close popup-next" type="button" autofocus>Play another</button>
+            <button id="popup-close" class="popup-close" type="button">Close</button>
         </div>
 
     </div>
@@ -142,8 +116,8 @@
     aria-label="Extra hint: open the TfL tube map in a new tab"
 >Extra hint <span aria-hidden="true">↗</span></a>
 
-<!-- Testing only: cycles through every puzzle in puzzles.js -->
-<button id="test-button" class="test-button" type="button"></button>
+<!-- Testing only: hidden in unlimited, kept so game.js finds it -->
+<button id="test-button" class="test-button" type="button" hidden></button>
 
 <script src="stations.js"></script>
 <script src="connections.js"></script>

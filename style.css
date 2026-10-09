@@ -400,6 +400,31 @@ body {
     animation: fade-in 0.3s ease;
 }
 
+/* Once the game ends: Play another (unlimited) or a link to unlimited (daily) */
+.next-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: var(--row-height);
+    margin-top: var(--gap);
+
+    background: var(--panel);
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    border-radius: 999px;
+
+    font-family: var(--font);
+    font-size: var(--row-text);
+    text-decoration: none;
+    cursor: pointer;
+    animation: fade-in 0.3s ease;
+}
+
+.next-button:hover {
+    background: var(--hover);
+}
+
 
 /* =====================================
    DROPDOWN
@@ -534,6 +559,20 @@ body.on-landing {
     outline-offset: 3px;
 }
 
+/* Link to unlimited.html: an outline version of the Play button */
+.unlimited-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 14px;
+
+    background: transparent;
+    color: var(--on-page);
+    border-color: var(--on-page);
+
+    text-decoration: none;
+}
+
 .landing-date {
     margin: 30px 0 0;
     font-size: 20px;
@@ -624,6 +663,33 @@ body.on-landing {
 
 .popup-close:hover {
     background: var(--hover);
+}
+
+/* Play another (or Play unlimited) sits beside Close */
+.popup-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 26px;
+}
+
+.popup-buttons .popup-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 140px;
+    margin-top: 0;
+    text-decoration: none;
+}
+
+.popup-next {
+    background: var(--ink);
+    color: #ffffff;
+}
+
+.popup-next:hover {
+    background: #333333;
 }
 
 @media (prefers-reduced-motion: reduce) {
