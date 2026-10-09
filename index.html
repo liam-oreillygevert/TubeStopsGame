@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f5f5f5">
+    <title>Tube Stops</title>
+
+    <!-- Preview text when the link is shared (WhatsApp, iMessage, social media) -->
+    <meta name="description" content="Guess the London Underground station from the tube lines that meet there. A new puzzle every day.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Tube Stops">
+    <meta property="og:title" content="Tube Stops: the daily London Underground puzzle">
+    <meta property="og:description" content="Guess the London Underground station from the tube lines that meet there. A new puzzle every day.">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Tube Stops: the daily London Underground puzzle">
+    <meta name="twitter:description" content="Guess the London Underground station from the tube lines that meet there. A new puzzle every day.">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="on-landing">
+
+<!-- Landing screen, shown over the game until Play is pressed -->
+<section class="landing" id="landing">
+
+    <p class="landing-title" role="heading" aria-level="2">TUBE STOPS</p>
+
+    <p class="landing-text">
+        Guess the London Underground station in as few guesses as possible
+    </p>
+
+    <button id="play-button" class="play-button" type="button">
+        Play today's puzzle
+    </button>
+
+    <p class="landing-date" id="landing-date"></p>
+
+</section>
+
+<header class="title-stack" id="title-stack">
+    <h1 class="title"><span id="title-text">TUBE STOPS</span></h1>
+    <!-- Extra copies added by game.js as the page scrolls -->
+    <div id="title-repeats" aria-hidden="true"></div>
+</header>
+
+<main class="game">
+
+    <!-- The map is drawn by game.js from today's puzzle -->
+    <div class="map-container">
+        <svg id="tube-map" viewBox="0 0 400 260" role="img" aria-label="Tube lines meeting at the mystery station"></svg>
+    </div>
+
+    <div class="answer-area" id="answer-area">
+
+        <input
+            id="answer-input"
+            type="text"
+            placeholder="Answer..."
+            autocomplete="off"
+            spellcheck="false"
+            role="combobox"
+            aria-expanded="false"
+            aria-controls="suggestions"
+        >
+
+        <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
+
+    </div>
+
+    <div id="result" class="row" hidden></div>
+
+    <div id="guesses"></div>
+
+</main>
+
+<!-- PLACEHOLDER: draft rules, edit the wording as needed.
+     Numbers in <span data-rule> are filled in from game.js settings. -->
+<section class="rules" aria-labelledby="rules-heading">
+
+    <h2 id="rules-heading">How to play</h2>
+
+    <p>
+        Every day there's a new mystery London Underground station.
+        The map shows the tube lines that meet there. Can you name it?
+    </p>
+
+    <ol>
+        <li>Count the lines: each line crossing the centre circle is a different tube line, so if you see 3 lines, the answer is a station on 3 tube lines.</li>
+        <li>Start typing a station name and pick it from the list. You have <span data-rule="max">10</span> guesses.</li>
+        <li>After <span data-rule="stops">3</span> wrong guesses, the next stop on each line is revealed.</li>
+        <li>After <span data-rule="colours">8</span> wrong guesses, the lines show their colours.</li>
+        <li>A yellow guess is within <span data-rule="close">5</span> stops of the answer, so you're getting close. Grey guesses are further away.</li>
+        <li>Guess right and the station turns green. Come back tomorrow for a new puzzle!</li>
+    </ol>
+
+    <p>
+        <br>
+        <i>This game only includes London Underground stations, this means it does not include the Overground, Elizabeth Line, DLR, National Rail or Trams within London.</i>
+    </p>
+
+</section>
+
+<!-- Credit required by TfL's open data terms -->
+<footer class="credit">
+    Powered by <a href="https://tfl.gov.uk/info-for/open-data-users/" target="_blank" rel="noopener noreferrer">TfL Open Data</a>
+</footer>
+
+<!-- End-of-game pop-up, filled in by game.js -->
+<dialog id="end-popup" class="popup" aria-labelledby="popup-heading">
+
+    <!-- Inner box holds the padding, so a click on the dialog
+         itself only happens on the dark area outside -->
+    <div class="popup-body">
+
+        <h2 id="popup-heading" class="popup-heading"></h2>
+        <p id="popup-station" class="popup-station"></p>
+        <p id="popup-message" class="popup-message"></p>
+
+        <button id="popup-close" class="popup-close" type="button" autofocus>Close</button>
+
+    </div>
+
+</dialog>
+
+<!-- Opens TfL's tube map in a new tab for players who want help -->
+<a
+    class="easy-mode"
+    href="https://tfl.gov.uk/maps/track"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Extra hint: open the TfL tube map in a new tab"
+>Extra hint <span aria-hidden="true">↗</span></a>
+
+<!-- Testing only: cycles through every puzzle in puzzles.js -->
+<button id="test-button" class="test-button" type="button"></button>
+
+<script src="stations.js"></script>
+<script src="connections.js"></script>
+<script src="puzzles.js"></script>
+<script src="game.js"></script>
+
+</body>
+</html>
