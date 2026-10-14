@@ -12,6 +12,38 @@
 <!-- data-mode tells game.js to play random puzzles back to back -->
 <body data-mode="unlimited">
 
+<!-- Burger button: opens the side menu with links to both game modes -->
+<button id="menu-button" class="menu-button" type="button" aria-label="Open menu" aria-controls="side-menu" aria-expanded="false">
+    <svg viewBox="0 0 20 14" aria-hidden="true">
+        <path d="M1 1h18M1 7h18M1 13h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+</button>
+
+<!-- Side menu, slides in from the left. game.js opens and closes it -->
+<dialog id="side-menu" class="side-menu" aria-label="Menu">
+
+    <!-- Inner box fills the panel, so a click on the dialog
+         itself only happens on the blurred area outside -->
+    <div class="menu-body">
+
+        <button id="menu-close" class="menu-close" type="button" aria-label="Close menu">&times;</button>
+
+        <p class="menu-title">TUBE STOPS</p>
+
+        <nav class="menu-links" aria-label="Game modes">
+            <a href="index.html" class="menu-link">Daily puzzle</a>
+            <a href="unlimited.html" class="menu-link" aria-current="page">Unlimited</a>
+        </nav>
+
+        <div class="menu-footer">
+            <p>Made by Liam and Chantal</p>
+            <p>Contact us at <a href="mailto:liam.oreillygevert@gmail.com">liam.oreillygevert@gmail.com</a></p>
+        </div>
+
+    </div>
+
+</dialog>
+
 <header class="title-stack" id="title-stack">
     <h1 class="title"><span id="title-text">UNLIMITED</span></h1>
     <!-- Extra copies added by game.js as the page scrolls -->

@@ -962,6 +962,67 @@ input.addEventListener("keydown", event => {
 
 
 /* ==========================================
+   SIDE MENU
+   ========================================== */
+
+const menuButton = document.getElementById("menu-button");
+const sideMenu = document.getElementById("side-menu");
+
+function openMenu() {
+    sideMenu.classList.remove("closing");
+    sideMenu.showModal();
+    menuButton.setAttribute("aria-expanded", "true");
+}
+
+// Slide the panel back out before actually closing it
+function closeMenu() {
+
+    if (!sideMenu.open || sideMenu.classList.contains("closing")) {
+        return;
+    }
+
+    menuButton.setAttribute("aria-expanded", "false");
+
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        sideMenu.close();
+        return;
+    }
+
+    sideMenu.classList.add("closing");
+
+    sideMenu.addEventListener("animationend", () => {
+        sideMenu.classList.remove("closing");
+        sideMenu.close();
+    }, { once: true });
+}
+
+menuButton.addEventListener("click", openMenu);
+
+document.getElementById("menu-close").addEventListener("click", closeMenu);
+
+// Escape key: use the slide-out instead of closing instantly
+sideMenu.addEventListener("cancel", event => {
+    event.preventDefault();
+    closeMenu();
+});
+
+// Clicking the blurred area outside the panel closes it
+sideMenu.addEventListener("click", event => {
+    if (event.target === sideMenu) {
+        closeMenu();
+    }
+});
+
+// The link for the page you're already on just closes the menu
+sideMenu.querySelectorAll('[aria-current="page"]').forEach(link => {
+    link.addEventListener("click", event => {
+        event.preventDefault();
+        closeMenu();
+    });
+});
+
+
+/* ==========================================
    TITLE
    ========================================== */
 
